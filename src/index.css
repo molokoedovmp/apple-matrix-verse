@@ -132,6 +132,39 @@
   .nav-item:hover::after {
     @apply w-full;
   }
+
+  /* Новые анимированные компоненты */
+  .tech-border {
+    @apply relative border border-transparent overflow-hidden;
+  }
+
+  .tech-border::before {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.8), transparent);
+    width: 150%;
+    height: 1px;
+    animation: techBorderSlide 3s linear infinite;
+  }
+
+  .digital-noise {
+    position: relative;
+  }
+
+  .digital-noise::after {
+    content: '';
+    @apply absolute inset-0 bg-black opacity-5;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .hover-glow {
+    @apply transition-all duration-300;
+  }
+
+  .hover-glow:hover {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.5));
+  }
 }
 
 @keyframes fadeIn {
@@ -154,6 +187,68 @@
   }
 }
 
+@keyframes pulseGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px rgba(0, 255, 65, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.8));
+  }
+}
+
+@keyframes floatAnimation {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes techBorderSlide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .glowing-text {
   animation: glowingText 2s infinite;
+}
+
+/* Анимации плавающих объектов */
+.float-1 {
+  animation: floatAnimation 5s ease-in-out infinite;
+}
+
+.float-2 {
+  animation: floatAnimation 7s ease-in-out infinite;
+}
+
+.float-3 {
+  animation: floatAnimation 9s ease-in-out infinite;
+}
+
+/* Пульсирующее свечение */
+.pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+/* Эффект набегающего цифрового шума */
+.digital-wave {
+  background-image: linear-gradient(90deg, 
+    rgba(0, 255, 65, 0) 0%, 
+    rgba(0, 255, 65, 0.2) 25%, 
+    rgba(0, 255, 65, 0.2) 75%, 
+    rgba(0, 255, 65, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: digitalWave 5s infinite linear;
+}
+
+@keyframes digitalWave {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
