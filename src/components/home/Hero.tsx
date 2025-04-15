@@ -171,7 +171,7 @@ const Hero = () => {
                 <div 
                   key={i} 
                   className="digital-char text-matrix-green"
-                  style={{ '--delay': i }}
+                  style={{ '--delay': `${i}` } as React.CSSProperties}
                 >
                   {Math.random() > 0.5 ? '1' : '0'}
                 </div>
@@ -193,8 +193,8 @@ const Hero = () => {
               <span className="relative z-10">Каталог</span>
               <span className="absolute inset-0 w-full h-full bg-matrix-green/10 transform scale-x-0 origin-left transition-transform group-hover:scale-x-100"></span>
             </Link>
-            <Link to="/mac" className="apple-button text-lg group relative overflow-hidden">
-              <span className="relative z-10">Новый Mac</span>
+            <Link to="/about" className="apple-button text-lg group relative overflow-hidden">
+              <span className="relative z-10">О нас</span>
               <span className="absolute inset-0 w-full h-full bg-apple-blue/10 transform scale-x-0 origin-left transition-transform group-hover:scale-x-100"></span>
             </Link>
           </div>

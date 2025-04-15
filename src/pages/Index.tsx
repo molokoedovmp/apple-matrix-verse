@@ -5,6 +5,9 @@ import Hero from '../components/home/Hero';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import Categories from '../components/home/Categories';
 import InnovationSection from '../components/home/InnovationSection';
+import TestimonialSection from '../components/home/TestimonialSection';
+import TechSpecs from '../components/home/TechSpecs';
+import NewsletterSection from '../components/home/NewsletterSection';
 import Navbar from '../components/navigation/Navbar';
 import Footer from '../components/ui/Footer';
 
@@ -34,8 +37,11 @@ const Index = () => {
         <div id="top"></div>
         <Hero />
         <FeaturedProducts />
+        <TechSpecs />
         <Categories />
         <InnovationSection />
+        <TestimonialSection />
+        <NewsletterSection />
         <Footer />
       </div>
     </div>
