@@ -74,7 +74,7 @@ const InnovationSection = () => {
           >
             <div className="relative">
               <img 
-                src="https://www.apple.com/newsroom/images/product/iphone/lifestyle/Apple-iPhone-14-Pro-iPhone-14-Pro-Max-hero-220907_Full-Bleed-Image.jpg.large.jpg" 
+                src="/apple.jpg" 
                 alt="Apple innovations" 
                 className="rounded-lg shadow-2xl shadow-matrix-green/20"
               />

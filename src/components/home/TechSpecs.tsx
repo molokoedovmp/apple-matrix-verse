@@ -154,7 +154,7 @@ const TechSpecs = () => {
             <div className={`text-center transition-all duration-500 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10'}`}>
               <div className="relative">
                 <img 
-                  src={`https://www.apple.com/v/${selectedProduct}/home/images/overview/hero/hero_${selectedProduct === 'mac' ? 'macbook_pro' : selectedProduct}__e0z30qyx9gky_large.jpg`} 
+                  src={`/iphone.jpg`} 
                   alt={product.name}
                   className="rounded-lg shadow-2xl mx-auto"
                 />

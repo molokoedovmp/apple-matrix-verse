@@ -1,33 +1,30 @@
-
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-
-const categories = [
-  {
-    id: 'iphone',
-    name: 'iPhone',
-    image: 'https://www.apple.com/v/iphone/home/bs/images/overview/hero/hero_iphone_14__de41900yuggi_large.jpg'
-  },
-  {
-    id: 'mac',
-    name: 'Mac',
-    image: 'https://www.apple.com/v/mac/home/bp/images/overview/compare/compare_mba_m2__ct4sjdlgdoqi_large.jpg'
-  },
-  {
-    id: 'ipad',
-    name: 'iPad',
-    image: 'https://www.apple.com/v/ipad/home/cd/images/overview/hero/ipad_pro_hero__bh3eq6sqfjw2_large.jpg'
-  },
-  {
-    id: 'watch',
-    name: 'Watch',
-    image: 'https://www.apple.com/v/apple-watch-series-8/b/images/overview/hero/hero_static__c9d1bk9frtua_large.jpg'
-  }
-];
+import { Link, useNavigate } from 'react-router-dom';
+import { useCategories } from '../../hooks/useCategories';
 
 const Categories = () => {
+  const { data: categories, isLoading, error } = useCategories();
   const navigate = useNavigate();
-
+  
+  console.log('Категории в компоненте Categories:', categories);
+  
+  if (isLoading) {
+    return (
+      <div className="py-12 text-center">
+        <div className="animate-pulse text-gray-400">Загрузка категорий...</div>
+      </div>
+    );
+  }
+  
+  if (error || !categories || categories.length === 0) {
+    console.error('Ошибка загрузки категорий:', error);
+    return (
+      <div className="py-12 text-center">
+        <div className="text-red-500">Не удалось загрузить категории</div>
+      </div>
+    );
+  }
+  
   return (
     <section className="py-20 bg-black">
       <div className="container mx-auto px-4">
@@ -41,10 +38,10 @@ const Categories = () => {
             <div 
               key={category.id}
               className="relative h-80 group cursor-pointer overflow-hidden rounded-lg border border-white/10 hover:border-matrix-green/50 transition-all duration-300"
-              onClick={() => navigate(`/${category.id}`)}
+              onClick={() => navigate(`/catalog?category=${category.slug}`)}
             >
               <img 
-                src={category.image} 
+                src={category.image_url} 
                 alt={category.name}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />

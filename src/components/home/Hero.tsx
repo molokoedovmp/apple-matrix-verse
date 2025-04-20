@@ -161,7 +161,7 @@ const Hero = () => {
           {/* Анимированный глобальный логотип с цифровыми эффектами */}
           <div className="relative mb-6">
             <h1 className="font-sans text-4xl md:text-7xl font-bold text-white">
-              Apple
+              Market
               <span className="text-matrix-green ml-2 glowing-text">Matrix</span>
             </h1>
             

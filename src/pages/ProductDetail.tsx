@@ -1,290 +1,297 @@
-
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/navigation/Navbar';
 import Footer from '../components/ui/Footer';
-import { ShoppingCart, ChevronLeft, Check, Info } from 'lucide-react';
+import { ShoppingCart, ChevronRight, Check, Loader2, ArrowLeft } from 'lucide-react';
+import { useProduct } from '../hooks/useProducts';
+import { useCart } from '../hooks/useCart';
 import { toast } from '../hooks/use-toast';
 
-interface ProductDetails {
-  id: string;
-  name: string;
-  category: string;
-  price: number;
-  images: string[];
-  colors: { name: string; hex: string }[];
-  storage: string[];
-  description: string;
-  features: string[];
-  specs: { [key: string]: string };
-}
-
-const productDatabase: { [key: string]: ProductDetails } = {
-  'iphone-14-pro': {
-    id: 'iphone-14-pro',
-    name: 'iPhone 14 Pro',
-    category: 'iPhone',
-    price: 129990,
-    images: [
-      'https://www.apple.com/v/iphone-14-pro/c/images/overview/hero/hero_endframe__dtzvajyextyu_large.jpg',
-      'https://www.apple.com/v/iphone-14-pro/c/images/overview/design/design_startframe__euw7kboik5ue_large.jpg',
-      'https://www.apple.com/v/iphone-14-pro/c/images/overview/design/design_dynamic_island__77d3gzgihe2e_large.jpg'
-    ],
-    colors: [
-      { name: 'Космический черный', hex: '#505050' },
-      { name: 'Серебристый', hex: '#F5F5F0' },
-      { name: 'Золотой', hex: '#F9E8D2' },
-      { name: 'Темно-фиолетовый', hex: '#735671' }
-    ],
-    storage: ['128GB', '256GB', '512GB', '1TB'],
-    description: 'iPhone 14 Pro и iPhone 14 Pro Max обладают инновационными технологиями, которые задают новые стандарты iPhone и постоянно переосмысливают сами себя.',
-    features: [
-      'Динамический остров - уникальный и волшебный способ взаимодействия с iPhone',
-      'Всегда включенный экран, благодаря которому новый экран блокировки всегда виден',
-      'Основная камера 48МП для потрясающей детализации',
-      'Сверхшироеоугольная и телефото камеры высшего уровня'
-    ],
-    specs: {
-      'Дисплей': '6,1" OLED (Pro) или 6,7" OLED (Pro Max)',
-      'Процессор': 'A16 Bionic',
-      'Основная камера': '48MP, f/1.78',
-      'Сверхширокоугольная камера': '12MP, f/2.2',
-      'Телефото камера': '12MP, f/2.8',
-      'Фронтальная камера': '12MP, f/1.9',
-      'Аккумулятор': 'До 23 часов воспроизведения видео',
-      'Защита': 'IP68'
-    }
-  },
-  'macbook-pro-14': {
-    id: 'macbook-pro-14',
-    name: 'MacBook Pro 14"',
-    category: 'Mac',
-    price: 189990,
-    images: [
-      'https://www.apple.com/v/mac/home/bp/images/overview/hero/macbook_pro_14_16__dmqm5594oyau_large.jpg',
-      'https://www.apple.com/v/macbook-pro-14-and-16/e/images/overview/product_design/tiles/design_keyboard_hw__eg5x4hjy0l6e_large.jpg',
-      'https://www.apple.com/v/macbook-pro-14-and-16/e/images/overview/connectivity/ports_1__lc0q6fp1ltmy_large.jpg'
-    ],
-    colors: [
-      { name: 'Космический серый', hex: '#444444' },
-      { name: 'Серебристый', hex: '#F1F1F1' }
-    ],
-    storage: ['512GB', '1TB', '2TB', '4TB', '8TB'],
-    description: 'Самый мощный MacBook Pro с невероятно быстрыми чипами M2 Pro или M2 Max. Продвинутая графика, большое количество памяти и выдающееся время автономной работы.',
-    features: [
-      'Чип M2 Pro или M2 Max для профессиональных задач любой сложности',
-      'Невероятно яркий Liquid Retina XDR дисплей с экстремальным динамическим диапазоном',
-      'До 96 ГБ унифицированной памяти для работы с большими проектами',
-      'До 22 часов автономной работы - лучший показатель в истории Mac'
-    ],
-    specs: {
-      'Дисплей': '14,2" Liquid Retina XDR, 3024×1964, XDR яркость 1600 нит',
-      'Процессор': 'Apple M2 Pro или M2 Max',
-      'Память': 'До 96GB унифицированной памяти',
-      'Хранилище': 'До 8TB SSD',
-      'Порты': '3x Thunderbolt 4, HDMI, SDXC, MagSafe 3, 3.5mm',
-      'Батарея': 'До 22 часов воспроизведения видео',
-      'Вес': '1,6 кг'
-    }
-  }
-};
-
 const ProductDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<ProductDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [selectedStorage, setSelectedStorage] = useState(0);
+  const { slug } = useParams<{ slug: string }>();
+  const { data: product, isLoading, error } = useProduct(slug || '');
+  const { addToCart } = useCart();
+  const [selectedMemory, setSelectedMemory] = useState<string>('');
+  const [mainImage, setMainImage] = useState<string>('');
+  const [pageLoading, setPageLoading] = useState(true);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const navigate = useNavigate();
+  
+  // Опции памяти для выбора
+  const memoryOptions = ['64GB', '128GB', '256GB', '512GB'];
   
   useEffect(() => {
-    // Имитация загрузки данных с сервера
+    // Имитация загрузки страницы
     const timer = setTimeout(() => {
-      if (id && productDatabase[id]) {
-        setProduct(productDatabase[id]);
-      }
-      setLoading(false);
-    }, 500);
+      setPageLoading(false);
+      setIsLoaded(true);
+    }, 1000);
     
     return () => clearTimeout(timer);
-  }, [id]);
-
-  const handleAddToCart = () => {
-    if (product) {
-      toast({
-        title: "Товар добавлен в корзину",
-        description: `${product.name} (${product.colors[selectedColor].name}, ${product.storage[selectedStorage]})`,
-      });
+  }, []);
+  
+  useEffect(() => {
+    if (product?.image_url) {
+      setMainImage(product.image_url);
     }
+  }, [product]);
+  
+  useEffect(() => {
+    console.log('Slug из URL:', slug);
+    console.log('Загруженный продукт:', product);
+    console.log('Ошибка загрузки:', error);
+  }, [slug, product, error]);
+  
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    const productToAdd = {
+      ...product,
+      memory: selectedMemory || memoryOptions[0]
+    };
+    
+    addToCart(productToAdd);
+    
+    toast({
+      title: "Товар добавлен в корзину",
+      description: `${product.name} (${selectedMemory || memoryOptions[0]}) добавлен в корзину`,
+    });
   };
-
-  if (loading) {
+  
+  // Обработчик для смены главного изображения
+  const handleImageChange = (imageUrl: string) => {
+    setMainImage(imageUrl);
+  };
+  
+  // Обработчик для возврата назад
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+  
+  // Добавляем экран загрузки
+  if (pageLoading || isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-black flex flex-col">
         <Navbar />
-        <main className="flex-grow pt-24 pb-12 flex items-center justify-center">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-matrix-green border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-matrix-green">Загрузка информации...</p>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 size={48} className="animate-spin text-matrix-green mx-auto mb-4" />
+            <h2 className="text-2xl text-white mb-2">Загрузка товара...</h2>
+            <p className="text-gray-400">Пожалуйста, подождите</p>
           </div>
-        </main>
+        </div>
         <Footer />
       </div>
     );
   }
-
+  
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 flex-1">
+          <div className="bg-black/30 backdrop-blur-sm rounded-lg border border-white/10 p-8 text-center">
+            <h2 className="text-2xl text-white mb-4">Ошибка при загрузке товара</h2>
+            <p className="text-gray-400 mb-6">{(error as Error).message}</p>
+            <Link to="/catalog" className="inline-block bg-matrix-green text-black px-6 py-3 rounded-md hover:bg-matrix-green/90 transition-colors">
+              Вернуться в каталог
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen bg-black flex flex-col">
         <Navbar />
-        <main className="flex-grow pt-24 pb-12 flex items-center justify-center">
-          <div className="text-center">
+        <div className="container mx-auto px-4 py-8 flex-1">
+          <div className="bg-black/30 backdrop-blur-sm rounded-lg border border-white/10 p-8 text-center">
             <h2 className="text-2xl text-white mb-4">Товар не найден</h2>
-            <Link to="/catalog" className="matrix-button">
-              <ChevronLeft size={16} className="mr-1 inline" /> Вернуться в каталог
+            <p className="text-gray-400 mb-6">Запрашиваемый товар не существует или был удален</p>
+            <Link to="/catalog" className="inline-block bg-matrix-green text-black px-6 py-3 rounded-md hover:bg-matrix-green/90 transition-colors">
+              Вернуться в каталог
             </Link>
           </div>
-        </main>
+        </div>
         <Footer />
       </div>
     );
   }
-
+  
+  // Получаем дополнительные изображения, исключая главное
+  const additionalImages = product.additional_images?.filter(img => img !== product.image_url) || [];
+  
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-black flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-24 pb-12 bg-matrix-dark">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row mb-8 items-center">
-            <Link to="/catalog" className="flex items-center text-gray-400 hover:text-matrix-green text-sm mb-4 md:mb-0">
-              <ChevronLeft size={16} className="mr-1" /> Назад в каталог
-            </Link>
-            <nav className="flex items-center ml-auto">
-              <Link to="/" className="text-gray-400 hover:text-white text-sm">Главная</Link>
-              <span className="mx-2 text-gray-600">/</span>
-              <Link to="/catalog" className="text-gray-400 hover:text-white text-sm">Каталог</Link>
-              <span className="mx-2 text-gray-600">/</span>
-              <span className="text-gray-300 text-sm">{product.name}</span>
-            </nav>
+      <main className="flex-1 container mx-auto px-4 pt-24 pb-8">
+        {/* Кнопка назад */}
+        <button 
+          onClick={handleGoBack}
+          className="inline-flex items-center px-4 py-2 bg-matrix-green/10 border border-matrix-green/30 rounded-md text-matrix-green hover:bg-matrix-green/20 transition-colors mb-6"
+        >
+          <ArrowLeft size={18} className="mr-2" />
+          Вернуться назад
+        </button>
+        
+        {/* Хлебные крошки */}
+        <div className="flex flex-wrap items-center text-sm text-gray-400 mb-8">
+          <Link to="/" className="hover:text-matrix-green transition-colors">Главная</Link>
+          <ChevronRight size={16} className="mx-2" />
+          <Link to="/catalog" className="hover:text-matrix-green transition-colors">Каталог</Link>
+          {product.category_name && (
+            <>
+              <ChevronRight size={16} className="mx-2" />
+              <Link to={`/catalog?category=${product.category_name}`} className="hover:text-matrix-green transition-colors">{product.category_name}</Link>
+            </>
+          )}
+          <ChevronRight size={16} className="mx-2" />
+          <span className="text-white">{product.name}</span>
+        </div>
+        
+        {/* Заголовок продукта для мобильных устройств */}
+        <div className="md:hidden mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2">{product.name}</h1>
+          <div className="flex items-center">
+            <span className="text-matrix-green mr-2">{product.category_name}</span>
+            {product.year && product.color && (
+              <span className="text-gray-400">• {product.year} • {product.color}</span>
+            )}
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Галерея изображений */}
-            <div>
-              <div className="bg-gradient-to-br from-black to-matrix-dark border border-white/10 rounded-lg overflow-hidden">
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          {/* Галерея изображений */}
+          <div className="space-y-4">
+            <div className="aspect-square bg-black/30 rounded-lg overflow-hidden">
+              <img 
+                src={mainImage || product.image_url} 
+                alt={product.name} 
+                className="w-full h-full object-contain p-4"
+              />
+            </div>
+            
+            {/* Дополнительные изображения */}
+            <div className="grid grid-cols-5 gap-2">
+              <div 
+                className={`aspect-square bg-black/30 rounded-lg overflow-hidden cursor-pointer border-2 ${mainImage === product.image_url ? 'border-matrix-green' : 'border-transparent'}`}
+                onClick={() => handleImageChange(product.image_url)}
+              >
                 <img 
-                  src={product.images[selectedImage]} 
+                  src={product.image_url} 
                   alt={product.name} 
-                  className="w-full h-auto"
+                  className="w-full h-full object-contain p-2"
                 />
               </div>
               
-              <div className="flex mt-4 gap-3">
-                {product.images.map((img, index) => (
-                  <button 
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`relative rounded-md overflow-hidden transition-all duration-300 ${
-                      selectedImage === index ? 'ring-2 ring-matrix-green' : 'opacity-70 hover:opacity-100'
-                    }`}
+              {additionalImages.map((image, index) => (
+                <div 
+                  key={index}
+                  className={`aspect-square bg-black/30 rounded-lg overflow-hidden cursor-pointer border-2 ${mainImage === image ? 'border-matrix-green' : 'border-transparent'}`}
+                  onClick={() => handleImageChange(image)}
+                >
+                  <img 
+                    src={image} 
+                    alt={`${product.name} - изображение ${index + 2}`} 
+                    className="w-full h-full object-contain p-2"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Информация о продукте */}
+          <div>
+            {/* Заголовок продукта для десктопа */}
+            <div className="hidden md:block">
+              <h1 className="text-3xl font-bold text-white mb-2">{product.name}</h1>
+              <div className="flex items-center mb-4">
+                <span className="text-matrix-green mr-2">{product.category_name}</span>
+                {product.year && product.color && (
+                  <span className="text-gray-400">• {product.year} • {product.color}</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <div className="text-3xl font-bold text-white mb-2">
+                {product.price?.toLocaleString('ru-RU')} ₽
+                
+                {product.discount_price && (
+                  <span className="text-lg text-gray-400 line-through ml-2">
+                    {product.discount_price.toLocaleString('ru-RU')} ₽
+                  </span>
+                )}
+              </div>
+              
+              <div className="flex items-center">
+                {product.in_stock ? (
+                  <span className="text-green-500 flex items-center">
+                    <Check size={16} className="mr-1" /> В наличии
+                  </span>
+                ) : (
+                  <span className="text-orange-400">Под заказ</span>
+                )}
+              </div>
+            </div>
+            
+            {/* Выбор объема памяти */}
+            <div className="mb-6">
+              <h3 className="text-white font-medium mb-2">Объем памяти:</h3>
+              <div className="grid grid-cols-4 gap-2">
+                {memoryOptions.map(memory => (
+                  <button
+                    key={memory}
+                    onClick={() => setSelectedMemory(memory)}
+                    className={`px-4 py-2 border ${
+                      selectedMemory === memory 
+                        ? 'border-matrix-green text-matrix-green' 
+                        : 'border-gray-700 text-gray-400 hover:border-gray-500'
+                    } rounded-md transition-colors`}
                   >
-                    <img src={img} alt={`${product.name} вид ${index + 1}`} className="w-20 h-20 object-cover" />
+                    {memory}
                   </button>
                 ))}
               </div>
             </div>
             
-            {/* Информация о товаре */}
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{product.name}</h1>
-              <p className="text-matrix-green mb-6">{product.category}</p>
+            {/* Кнопка добавления в корзину */}
+            <button
+              onClick={handleAddToCart}
+              className="w-full bg-matrix-green text-black py-3 rounded-md flex items-center justify-center font-medium hover:bg-matrix-green/90 transition-colors mb-6"
+            >
+              <ShoppingCart size={20} className="mr-2" />
+              Добавить в корзину
+            </button>
+            
+            {/* Технические характеристики */}
+            <div className="bg-black/30 rounded-lg p-4">
+              <h3 className="text-white font-medium mb-4">Технические характеристики:</h3>
               
-              <div className="text-3xl font-bold text-white mb-8">{product.price.toLocaleString('ru-RU')} ₽</div>
-              
-              <div className="mb-6">
-                <h3 className="text-white text-lg mb-3">Цвет:</h3>
-                <div className="flex flex-wrap gap-3">
-                  {product.colors.map((color, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedColor(index)}
-                      className={`relative w-10 h-10 rounded-full transition-all duration-200 ${
-                        selectedColor === index ? 'ring-2 ring-matrix-green ring-offset-2 ring-offset-matrix-dark' : ''
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                    >
-                      {selectedColor === index && (
-                        <span className="absolute inset-0 flex items-center justify-center">
-                          <Check size={16} className={`text-${color.hex === '#F5F5F0' || color.hex === '#F9E8D2' ? 'black' : 'white'}`} />
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-gray-400 text-sm mt-2">{product.colors[selectedColor].name}</p>
-              </div>
-              
-              <div className="mb-8">
-                <h3 className="text-white text-lg mb-3">Объем памяти:</h3>
-                <div className="flex flex-wrap gap-3">
-                  {product.storage.map((size, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedStorage(index)}
-                      className={`px-4 py-2 rounded-md transition-all duration-200 ${
-                        selectedStorage === index 
-                          ? 'bg-matrix-green text-black' 
-                          : 'bg-black/50 text-white border border-gray-700 hover:border-matrix-green'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="mb-8">
-                <button 
-                  className="w-full bg-matrix-green hover:bg-matrix-green/90 text-black font-medium py-3 px-6 rounded-md transition-all duration-300 flex items-center justify-center"
-                  onClick={handleAddToCart}
-                >
-                  <ShoppingCart className="mr-2" size={20} />
-                  Добавить в корзину
-                </button>
-              </div>
-              
-              <div className="border border-gray-800 rounded-md p-4 mb-8">
-                <p className="text-gray-300 text-sm">{product.description}</p>
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-white text-lg font-medium">Основные характеристики:</h3>
-                <ul className="space-y-2">
-                  {product.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="text-matrix-green mr-2 mt-1 flex-shrink-0" size={16} />
-                      <span className="text-gray-300 text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="space-y-2">
+                {product.specifications && Object.entries(product.specifications).length > 0 ? (
+                  Object.entries(product.specifications).map(([key, value]) => (
+                    <div key={key} className="flex justify-between border-b border-gray-800 pb-2">
+                      <span className="text-gray-400">{key}</span>
+                      <span className="text-white">{value}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400">Технические характеристики не указаны</p>
+                )}
               </div>
             </div>
           </div>
-          
-          {/* Характеристики */}
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-white mb-6">Технические характеристики</h2>
-            <div className="border-t border-gray-800">
-              {Object.entries(product.specs).map(([key, value], index) => (
-                <div key={index} className={`grid grid-cols-1 md:grid-cols-3 gap-4 py-4 ${index !== Object.entries(product.specs).length - 1 ? 'border-b border-gray-800' : ''}`}>
-                  <div className="text-gray-400">{key}</div>
-                  <div className="md:col-span-2 text-white">{value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+        </div>
+        
+        {/* Описание продукта */}
+        <div className="bg-black/30 rounded-lg p-6 mb-12">
+          <h2 className="text-2xl font-bold text-white mb-4">Описание</h2>
+          <div className="text-gray-300 space-y-4" dangerouslySetInnerHTML={{ __html: product.description }} />
         </div>
       </main>
       
